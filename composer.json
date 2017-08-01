@@ -1,0 +1,21 @@
+{
+	"name": "recras/openstack-swauth",
+	"description": "An Openstack identityService plugin for Swauth (v1.0)",
+	"keywords": [
+		"php",
+		"openstack",
+		"api",
+		"swauth"
+	],
+	"homepage": "https://github.com/Recras/php-openstack-swauth",
+	"require": {
+		"php": "^7.0",
+		"php-opencloud/openstack": "2.0.*"
+	},
+	"license": "MIT",
+	"autoload": {
+		"psr-4": {
+			"Recras\\Openstack\\": "src/"
+		}
+	}
+}
