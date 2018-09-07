@@ -2,14 +2,11 @@
 
 namespace Recras\OpenStack\Identity\Swauth;
 
-use Recras\OpenStack\Identity\Swauth\Models\Token;
-use Recras\OpenStack\Identity\Swauth\Models\ServiceCatalog;
-
 use GuzzleHttp\ClientInterface;
-use OpenStack\Common\Service\AbstractService;
 use OpenStack\Common\Auth\IdentityService;
-use OpenStack\Common\Api\Operation;
-use OpenStack\Common\Api\ApiInterface;
+use OpenStack\Common\Service\AbstractService;
+use Recras\OpenStack\Identity\Swauth\Models\ServiceCatalog;
+use Recras\OpenStack\Identity\Swauth\Models\Token;
 
 class Service extends AbstractService implements IdentityService
 {
@@ -42,14 +39,34 @@ class Service extends AbstractService implements IdentityService
      */
     public function authenticate(array $values): array
     {
-        $response = $this->execute(self::TOKEN_DEFINITION, array_intersect_key($values, self::TOKEN_DEFINITION['params']));
 
-        $token = $this->model(Token::class, $response);
+        if (!empty($values['cachedToken'])) {
+            $token = $this->generateTokenFromCache($values['cachedToken']);
 
-        $serviceCatalog = $this->model(ServiceCatalog::class, $response);
+            if ($token->hasExpired()) {
+                throw new \RuntimeException(sprintf('Cached token has expired on "%s".', $token->expires->format(\DateTime::ISO8601)));
+            }
+            $base_uri = $token->catalog->base_uri;
+        } else {
+            $response = $this->execute(self::TOKEN_DEFINITION, array_intersect_key($values, self::TOKEN_DEFINITION['params']));
+            $token = $this->model(Token::class, $response);
+            $base_uri = ($this->model(ServiceCatalog::class, $response))->base_uri;
+        }
+
         return [
             $token,
-            $serviceCatalog->base_uri,
+            $base_uri,
         ];
+    }
+
+    public function generateTokenFromCache(array $cachedToken): Token
+    {
+        return $this->model(Token::class)->populateFromArray($cachedToken);
+    }
+
+    public function generateToken(array $options = []): Token
+    {
+        $response = $this->execute(self::TOKEN_DEFINITION, $options);
+        return $this->model(Token::class, $response);
     }
 }
