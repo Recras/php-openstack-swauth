@@ -17,7 +17,7 @@ $httpClient = new Client([
     'handler' => HandlerStack::create(),
 ]);
 
-$identidyService = SwauthService::factory($httpClient);
+$identityService = SwauthService::factory($httpClient);
 $options = [
     'authUrl' => $base_uri,
     'username' => 'test:tester',
@@ -26,7 +26,7 @@ $options = [
 ];
 
 $openstack = new OpenStack($options);
-$token = $identidyService->generateToken($openstackOptions);
+$token = $identityService->generateToken($options);
 
 // Display token expiry
 echo sprintf('Token expires at %s' . PHP_EOL, $token->expires->format('c'));

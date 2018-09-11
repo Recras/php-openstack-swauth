@@ -17,7 +17,7 @@ $httpClient = new Client([
     'handler' => HandlerStack::create(),
 ]);
 
-$identidyService = SwauthService::factory($httpClient);
+$identityService = SwauthService::factory($httpClient);
 $options = [
     'authUrl' => $base_uri,
     'username' => 'test:tester',

@@ -41,17 +41,20 @@ class Service extends AbstractService implements IdentityService
     {
 
         if (!empty($values['cachedToken'])) {
-            $token = $this->generateTokenFromCache($values['cachedToken']);
-
-            if ($token->hasExpired()) {
-                throw new \RuntimeException(sprintf('Cached token has expired on "%s".', $token->expires->format(\DateTime::ISO8601)));
-            }
-            $base_uri = $token->catalog->base_uri;
+            return $this->reuseToken($values['cachedToken']);
         } else {
-            $response = $this->execute(self::TOKEN_DEFINITION, array_intersect_key($values, self::TOKEN_DEFINITION['params']));
-            $token = $this->model(Token::class, $response);
-            $base_uri = ($this->model(ServiceCatalog::class, $response))->base_uri;
+            return $this->createNewToken();
         }
+    }
+
+    private function reuseToken(array $cachedToken): array
+    {
+        $token = $this->generateTokenFromCache($cachedToken);
+
+        if ($token->hasExpired()) {
+            throw new \RuntimeException(sprintf('Cached token has expired on "%s".', $token->expires->format(\DateTime::ISO8601)));
+        }
+        $base_uri = $token->catalog->base_uri;
 
         return [
             $token,
@@ -59,11 +62,37 @@ class Service extends AbstractService implements IdentityService
         ];
     }
 
+    private function createNewToken(): array
+    {
+        $response = $this->execute(self::TOKEN_DEFINITION, array_intersect_key($values, self::TOKEN_DEFINITION['params']));
+        $token = $this->model(Token::class, $response);
+        $base_uri = ($this->model(ServiceCatalog::class, $response))->base_uri;
+
+        return [
+            $token,
+            $base_uri,
+        ];
+    }
+
+    /**
+     * Generates authentication token from cached token using `$token->export()`
+     *
+     * @param array $cachedToken {@see \Recras\OpenStack\Identity\Swauth\Models\Token::export}
+     *
+     * @return Token
+     */
     public function generateTokenFromCache(array $cachedToken): Token
     {
         return $this->model(Token::class)->populateFromArray($cachedToken);
     }
 
+    /**
+     * Generates a new authentication token
+     *
+     * @param array $options {@see params from TOKEN_DEFINITION}
+     *
+     * @return Token
+     */
     public function generateToken(array $options = []): Token
     {
         $response = $this->execute(self::TOKEN_DEFINITION, $options);

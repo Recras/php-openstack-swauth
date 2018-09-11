@@ -44,6 +44,13 @@ class Token extends OperatorResource implements \OpenStack\Common\Auth\Token
         return $this;
     }
 
+    /**
+     * Returns a serialized representation of an authentication token.
+     *
+     * Initialize OpenStack object using $params['cachedToken'] to reduce the amount of HTTP calls.
+     *
+     * @return array
+     */
     public function export(): array
     {
         return [
