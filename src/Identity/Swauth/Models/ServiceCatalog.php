@@ -19,7 +19,8 @@ class ServiceCatalog extends OperatorResource implements Catalog
     }
     public function populateFromArray(array $data): self
     {
-        throw new BadMethodCallException(self::class . '::populateFromArray: not implemented');
+        $this->base_uri = $data['base_uri'];
+        return $this;
     }
 
     public function populateFromResponse(ResponseInterface $resp): self
@@ -27,5 +28,11 @@ class ServiceCatalog extends OperatorResource implements Catalog
         $this->base_uri = $resp->getHeaderLine('X-Storage-Url');
         return $this;
     }
-}
 
+    public function export(): array
+    {
+        return [
+            'base_uri' => $this->base_uri,
+        ];
+    }
+}
