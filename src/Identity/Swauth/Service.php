@@ -43,7 +43,7 @@ class Service extends AbstractService implements IdentityService
         if (!empty($values['cachedToken'])) {
             return $this->reuseToken($values['cachedToken']);
         } else {
-            return $this->createNewToken();
+            return $this->createNewToken($values);
         }
     }
 
@@ -62,7 +62,7 @@ class Service extends AbstractService implements IdentityService
         ];
     }
 
-    private function createNewToken(): array
+    private function createNewToken(array $values): array
     {
         $response = $this->execute(self::TOKEN_DEFINITION, array_intersect_key($values, self::TOKEN_DEFINITION['params']));
         $token = $this->model(Token::class, $response);
